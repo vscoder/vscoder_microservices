@@ -134,7 +134,7 @@ build_prometheus:
 	. ./env && \
 	cd ./monitoring/prometheus && bash docker_build.sh
 
-build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build alertmanager_build
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build alertmanager_build grafana_build
 
 
 ###
@@ -156,7 +156,7 @@ push_prometheus:
 	. ./env && \
 	docker push $${USER_NAME}/prometheus
 
-push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push alertmanager_push
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push alertmanager_push grafana_push
 
 
 ###
@@ -201,13 +201,42 @@ alertmanager_push:
 	docker push $${USER_NAME}/alertmanager
 
 
+
+###
+# grafana
+###
+grafana_build:
+	. ./env && \
+	cd ./monitoring/grafana && bash docker_build.sh
+
+grafana_push:
+	. ./env && . ./docker/.env && \
+	docker push $${USER_NAME}/grafana:$${GRAFANA_VERSION}
+
+
+###
+# docker-compose
+###
+docker_compose_shell:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose.yml -f docker-compose-monitoring.yml exec ${SERVICE} sh
+
+docker_compose_logs:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose.yml -f docker-compose-monitoring.yml logs -f ${SERVICE}
+
+docker_compose_down:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose.yml -f docker-compose-monitoring.yml down ${SERVICE}
+
+
+
 ###
 # app
 ###
 run: variables
 	cd docker \
-	&& ../.venv/bin/docker-compose up -d \
-	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
+	&& ../.venv/bin/docker-compose -f docker-compose.yml -f docker-compose-monitoring.yml up -d
 
 ###
 # copy variables from examples, if needed
